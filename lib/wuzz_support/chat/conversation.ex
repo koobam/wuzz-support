@@ -21,10 +21,17 @@ defmodule WuzzSupport.Chat.Conversation do
   @doc "Validates the fields a customer controls; returns a map of field => messages."
   def validate(kind, outlet_id) do
     cond do
-      kind not in @kinds -> {:error, %{kind: ["must be support or outlet"]}}
-      kind == "outlet" and blank?(outlet_id) -> {:error, %{outlet_id: ["is required for an outlet conversation"]}}
-      kind == "support" and not is_nil(outlet_id) -> {:error, %{outlet_id: ["must be empty for support"]}}
-      true -> :ok
+      kind not in @kinds ->
+        {:error, %{kind: ["must be support or outlet"]}}
+
+      kind == "outlet" and blank?(outlet_id) ->
+        {:error, %{outlet_id: ["is required for an outlet conversation"]}}
+
+      kind == "support" and not is_nil(outlet_id) ->
+        {:error, %{outlet_id: ["must be empty for support"]}}
+
+      true ->
+        :ok
     end
   end
 

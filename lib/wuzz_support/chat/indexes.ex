@@ -12,24 +12,32 @@ defmodule WuzzSupport.Chat.Indexes do
     ttl = retention_seconds()
 
     with :ok <-
-           Mongo.create_indexes(:mongo, @conversations, [
-             [key: [kind: 1, status: 1, last_message_at: -1], name: "kind_status_last"],
-             [key: [customer_id: 1], name: "customer"],
-             [key: [outlet_id: 1, last_message_at: -1], name: "outlet_last"],
-             # One open thread per customer per counterpart, so reopening the
-             # chat resumes it. A missing outlet_id (support) counts as null,
-             # so a customer has at most one open support thread too.
+           Mongo.create_indexes(
+             :mongo,
+             @conversations,
              [
-               key: [customer_id: 1, kind: 1, outlet_id: 1],
-               name: "one_open_per_counterpart",
-               unique: true,
-               partialFilterExpression: %{status: "open"}
-             ]
-           ] ++ conversation_ttl(ttl)),
+               [key: [kind: 1, status: 1, last_message_at: -1], name: "kind_status_last"],
+               [key: [customer_id: 1], name: "customer"],
+               [key: [outlet_id: 1, last_message_at: -1], name: "outlet_last"],
+               # One open thread per customer per counterpart, so reopening the
+               # chat resumes it. A missing outlet_id (support) counts as null,
+               # so a customer has at most one open support thread too.
+               [
+                 key: [customer_id: 1, kind: 1, outlet_id: 1],
+                 name: "one_open_per_counterpart",
+                 unique: true,
+                 partialFilterExpression: %{status: "open"}
+               ]
+             ] ++ conversation_ttl(ttl)
+           ),
          :ok <-
-           Mongo.create_indexes(:mongo, @messages, [
-             [key: [conversation_id: 1, inserted_at: 1], name: "conversation_time"]
-           ] ++ message_ttl(ttl)) do
+           Mongo.create_indexes(
+             :mongo,
+             @messages,
+             [
+               [key: [conversation_id: 1, inserted_at: 1], name: "conversation_time"]
+             ] ++ message_ttl(ttl)
+           ) do
       :ok
     else
       error when attempts > 1 ->
@@ -58,7 +66,9 @@ defmodule WuzzSupport.Chat.Indexes do
   end
 
   defp message_ttl(nil), do: []
-  defp message_ttl(seconds), do: [[key: [inserted_at: 1], name: "message_ttl", expireAfterSeconds: seconds]]
+
+  defp message_ttl(seconds),
+    do: [[key: [inserted_at: 1], name: "message_ttl", expireAfterSeconds: seconds]]
 
   defp retention_seconds do
     case Application.get_env(:wuzz_support, :retention_days, 0) do

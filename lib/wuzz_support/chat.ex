@@ -58,7 +58,10 @@ defmodule WuzzSupport.Chat do
       |> put_opt("kind", opts[:kind])
 
     :mongo
-    |> Mongo.find(@conversations, filter, sort: %{"last_message_at" => -1, "inserted_at" => -1}, limit: @page)
+    |> Mongo.find(@conversations, filter,
+      sort: %{"last_message_at" => -1, "inserted_at" => -1},
+      limit: @page
+    )
     |> Enum.map(&Conversation.from_doc/1)
   end
 
@@ -97,12 +100,20 @@ defmodule WuzzSupport.Chat do
   end
 
   defp find_open(customer_id, kind, outlet_id) do
-    filter = %{"customer_id" => customer_id, "kind" => kind, "outlet_id" => outlet_id, "status" => "open"}
+    filter = %{
+      "customer_id" => customer_id,
+      "kind" => kind,
+      "outlet_id" => outlet_id,
+      "status" => "open"
+    }
+
     :mongo |> Mongo.find_one(@conversations, filter) |> Conversation.from_doc()
   end
 
   def close_conversation(%Conversation{id: id} = c) do
-    case Mongo.update_one(:mongo, @conversations, %{"_id" => id}, %{"$set" => %{"status" => "closed"}}) do
+    case Mongo.update_one(:mongo, @conversations, %{"_id" => id}, %{
+           "$set" => %{"status" => "closed"}
+         }) do
       {:ok, _} -> {:ok, %{c | status: "closed"}}
       {:error, _} = error -> error
     end
@@ -142,7 +153,9 @@ defmodule WuzzSupport.Chat do
       # sorts a little stale in the inbox until the next message.
       with {:ok, _} <- Mongo.insert_one(:mongo, @messages, doc),
            {:ok, _} <-
-             Mongo.update_one(:mongo, @conversations, %{"_id" => c.id}, %{"$set" => %{"last_message_at" => sent_at}}) do
+             Mongo.update_one(:mongo, @conversations, %{"_id" => c.id}, %{
+               "$set" => %{"last_message_at" => sent_at}
+             }) do
         notify_inbox(%{c | last_message_at: sent_at})
         {:ok, Message.from_doc(doc)}
       else
@@ -160,7 +173,9 @@ defmodule WuzzSupport.Chat do
 
   ## Inbox fan-out: staff lists refresh when a thread appears or moves.
 
-  def inbox_topics(%Conversation{kind: "outlet", outlet_id: o}), do: ["inbox:admin", "inbox:outlet:#{o}"]
+  def inbox_topics(%Conversation{kind: "outlet", outlet_id: o}),
+    do: ["inbox:admin", "inbox:outlet:#{o}"]
+
   def inbox_topics(%Conversation{}), do: ["inbox:admin"]
 
   defp notify_inbox(%Conversation{} = c) do

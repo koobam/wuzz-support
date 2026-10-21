@@ -7,7 +7,9 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("POOL_SIZE", "10"))
 
   # Days to keep chat messages and closed threads. 0 keeps them forever.
-  config :wuzz_support, :retention_days, String.to_integer(System.get_env("MESSAGE_RETENTION_DAYS", "0"))
+  config :wuzz_support,
+         :retention_days,
+         String.to_integer(System.get_env("MESSAGE_RETENTION_DAYS", "0"))
 
   config :wuzz_support, WuzzSupportWeb.Endpoint,
     # A release does not start the HTTP server unless told to.
@@ -23,10 +25,13 @@ if config_env() == :prod do
     public_keys: String.split(System.fetch_env!("JWT_PUBLIC_KEYS"), ",", trim: true)
 
   config :wuzz_support, :ice,
-    stun_urls: String.split(System.get_env("STUN_URLS", "stun:stun.l.google.com:19302"), ",", trim: true),
+    stun_urls:
+      String.split(System.get_env("STUN_URLS", "stun:stun.l.google.com:19302"), ",", trim: true),
     turn_urls: String.split(System.get_env("TURN_URLS", ""), ",", trim: true),
     turn_secret: System.get_env("TURN_SECRET"),
     ttl: String.to_integer(System.get_env("TURN_TTL", "3600"))
 
-  config :wuzz_support, :cors_origins, String.split(System.fetch_env!("CORS_ORIGINS"), ",", trim: true)
+  config :wuzz_support,
+         :cors_origins,
+         String.split(System.fetch_env!("CORS_ORIGINS"), ",", trim: true)
 end
