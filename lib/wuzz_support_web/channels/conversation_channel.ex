@@ -80,7 +80,12 @@ defmodule WuzzSupportWeb.ConversationChannel do
 
       true ->
         who = socket.assigns.identity
-        body = payload |> Map.take(["description", "candidate"]) |> Map.merge(%{"call_id" => call_id, "from" => who.id})
+
+        body =
+          payload
+          |> Map.take(["description", "candidate"])
+          |> Map.merge(%{"call_id" => call_id, "from" => who.id})
+
         event = if action == "signal", do: "call:signal", else: "call:#{past(action)}"
         broadcast_from!(socket, event, body)
         {:reply, :ok, socket}
@@ -93,7 +98,8 @@ defmodule WuzzSupportWeb.ConversationChannel do
     {:noreply, socket}
   end
 
-  def handle_in(_event, _payload, socket), do: {:reply, {:error, %{reason: "bad_request"}}, socket}
+  def handle_in(_event, _payload, socket),
+    do: {:reply, {:error, %{reason: "bad_request"}}, socket}
 
   defp past("accept"), do: "accepted"
   defp past("reject"), do: "rejected"

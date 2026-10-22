@@ -33,6 +33,6 @@ defmodule WuzzSupport.MixProject do
   end
 
   defp aliases do
-    [setup: ["deps.get"]]
+    [setup: ["deps.get"], test: "test --no-start"]
   end
 end
